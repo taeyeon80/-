@@ -1,0 +1,85 @@
+{
+  "entities": {
+    "SurveyResponse": {
+      "title": "SurveyResponse",
+      "description": "한국전기기술인협회 직원 익명 설문조사 응답 데이터 (개인식별정보 일체 미포함)",
+      "type": "object",
+      "properties": {
+        "workloadLevel": {
+          "type": "string",
+          "description": "평소 민원 업무 및 회원 응대 과정에서 느끼는 업무 부담 수준"
+        },
+        "phoneInquiryLevel": {
+          "type": "string",
+          "description": "현재 담당 업무 관련 전화 문의량 수준"
+        },
+        "phoneEnvironmentLevel": {
+          "type": "string",
+          "description": "현재 담당 업무 관련 전화 상담 환경(대기시간 등)의 적정성"
+        },
+        "delayFactors": {
+          "type": "array",
+          "description": "민원 응대 및 전화 상담시 업무 처리 지연 요인 (복수선택)"
+        },
+        "delayFactorEtc": {
+          "type": "string",
+          "maxLength": 500,
+          "description": "기타 지연 요인 직접 입력"
+        },
+        "improvementNeeds": {
+          "type": "object",
+          "description": "원활한 업무 처리를 위한 항목별 개선 필요도 점수 (1: 필요없음 ~ 4: 매우필요)"
+        },
+        "suggestion": {
+          "type": "string",
+          "maxLength": 1000,
+          "description": "협회 발전을 위한 건의 및 개선사항 (자유 기술)"
+        },
+        "submittedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "설문 제출 일시"
+        },
+        "surveyVersion": {
+          "type": "string",
+          "description": "설문 버전 (예: v1.0)"
+        }
+      },
+      "required": [
+        "workloadLevel",
+        "phoneInquiryLevel",
+        "phoneEnvironmentLevel",
+        "delayFactors",
+        "improvementNeeds",
+        "submittedAt",
+        "surveyVersion"
+      ]
+    },
+    "Admin": {
+      "title": "Admin",
+      "description": "관리자 계정 허용 목록 (문서 ID: 관리자 이메일)",
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string",
+          "description": "관리자 이메일 주소"
+        },
+        "role": {
+          "type": "string",
+          "description": "권한 역할 (예: admin)"
+        }
+      },
+      "required": ["email", "role"]
+    }
+  },
+  "firestore": {
+    "/responses/{responseId}": {
+      "schema": "SurveyResponse",
+      "description": "익명 설문 응답 컬렉션. 일반 직원은 create만 가능(완전 익명), admins만 read 가능"
+    },
+    "/admins/{adminEmail}": {
+      "schema": "Admin",
+      "description": "관리자 허용 목록. 인증된 사용자가 본인 이메일 문서를 확인하여 관리자 여부 판별"
+    }
+  }
+}

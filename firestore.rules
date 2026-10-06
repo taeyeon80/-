@@ -1,0 +1,70 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default deny all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isUserAdmin() {
+      return isSignedIn() && (
+        request.auth.token.email == "taeyeon80@nate.com" ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.token.email))
+      );
+    }
+
+    function isValidResponse(data) {
+      return data.keys().hasAll([
+        'workloadLevel',
+        'phoneInquiryLevel',
+        'phoneEnvironmentLevel',
+        'delayFactors',
+        'improvementNeeds',
+        'submittedAt',
+        'surveyVersion'
+      ]) &&
+      data.keys().hasOnly([
+        'workloadLevel',
+        'phoneInquiryLevel',
+        'phoneEnvironmentLevel',
+        'delayFactors',
+        'delayFactorEtc',
+        'improvementNeeds',
+        'suggestion',
+        'submittedAt',
+        'surveyVersion'
+      ]) &&
+      data.workloadLevel is string && data.workloadLevel.size() <= 50 &&
+      data.phoneInquiryLevel is string && data.phoneInquiryLevel.size() <= 50 &&
+      data.phoneEnvironmentLevel is string && data.phoneEnvironmentLevel.size() <= 50 &&
+      data.delayFactors is list && data.delayFactors.size() >= 1 && data.delayFactors.size() <= 10 &&
+      data.surveyVersion is string && data.surveyVersion.size() <= 20 &&
+      data.improvementNeeds is map &&
+      data.submittedAt == request.time &&
+      (!('delayFactorEtc' in data) || (data.delayFactorEtc is string && data.delayFactorEtc.size() <= 500)) &&
+      (!('suggestion' in data) || (data.suggestion is string && data.suggestion.size() <= 2000));
+    }
+
+    // Survey responses:
+    // 익명 설문 응답: 엄격한 데이터 유효성 검증을 거쳐 생성(create)
+    // 읽기(read): 감사실 관리자(비밀번호: keea2026) 및 구글 관리자 대시보드 통계 조회를 위해 허용
+    // 수정 및 삭제: 데이터 위변조 방지를 위해 전면 금지
+    match /responses/{responseId} {
+      allow create: if isValidResponse(request.resource.data);
+      allow read: if true;
+      allow update, delete: if false;
+    }
+
+    // 관리자 화이트리스트
+    match /admins/{adminEmail} {
+      allow get: if isSignedIn() && (request.auth.token.email == adminEmail || isUserAdmin());
+      allow list: if isUserAdmin();
+      allow write: if isUserAdmin();
+    }
+  }
+}

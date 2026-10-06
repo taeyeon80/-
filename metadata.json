@@ -1,0 +1,6 @@
+{
+  "name": "한국전기기술인협회 직원 익명 설문조사",
+  "description": "한국전기기술인협회 직원 대상 익명 설문조사 및 관리자 통계 대시보드 웹애플리케이션",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
